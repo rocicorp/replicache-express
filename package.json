@@ -1,0 +1,57 @@
+{
+  "name": "replicache-express",
+  "version": "0.1.0",
+  "description": "Replicache Express Backend",
+  "homepage": "https://github.com/rocicorp/replicache-express",
+  "repository": "github:rocicorp/replicache-express",
+  "license": "Apache-2.0",
+  "scripts": {
+    "format": "prettier --write 'src/*/*.{js,jsx,json,ts,tsx,html,css,md}' '*.{cjs,js,jsx,json,ts,tsx,html,css,md}'",
+    "check-format": "prettier --check 'src/*.{js,jsx,json,ts,tsx,html,css,md}' '*.{cjs,js,jsx,json,ts,tsx,html,css,md}'",
+    "lint": "eslint --ext .ts,.tsx,.js,.jsx src/",
+    "build": "rm -rf lib && tsc",
+    "prepack": "npm run lint && npm run build",
+    "pretest": "npm run build",
+    "test": "mocha --ui=tdd 'lib/**/*.test.js'",
+    "start": "set TS_NODE_FILES=true & node --loader ts-node/esm src/index.ts"
+  },
+  "engines": {
+    "//": "npm 7 not strictly *required* but without, you need to manually install the peerDependencies below",
+    "npm": ">=7.0.0"
+  },
+  "peerDependencies": {
+    "@supabase/supabase-js": ">=1.35.3",
+    "pg": ">=8.6.0",
+    "pg-mem": ">=2.5.0",
+    "replicache": ">=11.2.1",
+    "zod": ">=3.17.3",
+    "express": ">=4.17.13"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.3.0",
+    "@types/express": "^4.17.13",
+    "@types/mocha": "^9.1.0",
+    "@types/node": "^14.18.23",
+    "@types/pg": "^8.6.4",
+    "@typescript-eslint/eslint-plugin": "^5.3.1",
+    "@typescript-eslint/parser": "^5.18.0",
+    "chai": "^4.3.6",
+    "eslint": "^8.2.0",
+    "mocha": "^9.2.1",
+    "prettier": "^2.2.1",
+    "ts-node": "^10.7.0",
+    "typescript": "^4.7.4"
+  },
+  "type": "module",
+  "files": [
+    "lib/*",
+    "!lib/*.test.*"
+  ],
+  "types": "./lib/index.d.ts",
+  "exports": {
+    ".": "./lib/index.js"
+  },
+  "dependencies": {
+    "nanoid": "^4.0.0"
+  }
+}
