@@ -1,9 +1,7 @@
 import type { Pool } from "pg";
 import type { Executor } from "../pg.js";
-import { getSupabaseServerConfig } from "../supabase.js";
 import { PGMemConfig } from "./pgmem.js";
 import { PostgresDBConfig } from "./postgres.js";
-import { supabaseDBConfig } from "./supabase.js";
 
 /**
  * We use Postgres in a few different ways: directly, via supabase,
@@ -16,13 +14,8 @@ export interface PGConfig {
 
 export function getDBConfig(): PGConfig {
   const dbURL = process.env.DATABASE_URL;
-  console.log("DATABASE_URL", dbURL);
   if (dbURL) {
     return new PostgresDBConfig(dbURL);
-  }
-  const supabaseServerConfig = getSupabaseServerConfig();
-  if (supabaseServerConfig) {
-    return supabaseDBConfig(supabaseServerConfig);
   }
   return new PGMemConfig();
 }
