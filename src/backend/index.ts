@@ -20,7 +20,8 @@ export async function createSpace(spaceID: string) {
 export async function handleRequest<M extends MutatorDefs>(
   req: Express.Request,
   res: Express.Response,
+  next: Express.NextFunction,
   mutators: M
 ) {
-  await handleRequestImpl(req, res, mutators);
+  await handleRequestImpl(req, res, next, mutators);
 }

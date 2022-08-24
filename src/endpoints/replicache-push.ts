@@ -6,6 +6,7 @@ import type Express from "express";
 export async function handlePush<M extends MutatorDefs>(
   req: Express.Request,
   res: Express.Response,
+  next: Express.NextFunction,
   mutators: M
 ): Promise<void> {
   if (req.query.spaceID === undefined) {
@@ -13,6 +14,10 @@ export async function handlePush<M extends MutatorDefs>(
     return;
   }
   const spaceID = req.query.spaceID.toString() as string;
-  await push(spaceID, req.body, mutators);
-  res.status(200).json({});
+  try {
+    await push(spaceID, req.body, mutators);
+    res.status(200).json({});
+  } catch (e: any) {
+    next(Error(e));
+  }
 }

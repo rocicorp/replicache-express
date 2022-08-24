@@ -53,14 +53,22 @@ export class ReplicacheExpressServer {
 
     app.post(
       "/api/replicache/:op",
-      async (req: Express.Request, res: Express.Response) => {
-        await handleRequest(req, res, mutators);
+      async (
+        req: Express.Request,
+        res: Express.Response,
+        next: Express.NextFunction
+      ) => {
+        await handleRequest(req, res, next, mutators);
       }
     );
     app.get(
       "/api/replicache/poke-sse",
-      async (req: Express.Request, res: Express.Response) => {
-        await handlePokeSSE(req, res);
+      async (
+        req: Express.Request,
+        res: Express.Response,
+        next: Express.NextFunction
+      ) => {
+        await handlePokeSSE(req, res, next);
       }
     );
 
