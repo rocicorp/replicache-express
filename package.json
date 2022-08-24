@@ -20,7 +20,6 @@
     "npm": ">=7.0.0"
   },
   "peerDependencies": {
-    "@supabase/supabase-js": ">=1.35.3",
     "pg": ">=8.6.0",
     "pg-mem": ">=2.5.0",
     "replicache": ">=11.2.1",

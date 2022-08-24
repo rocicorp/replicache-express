@@ -1,7 +1,5 @@
 import type { Executor } from "../pg.js";
-import { getSupabaseServerConfig } from "../supabase.js";
 import { SSEPokeBackend } from "./sse.js";
-import { SupabasePokeBackend } from "./supabase.js";
 
 export interface PokeBackend {
   initSchema(executor: Executor): Promise<void>;
@@ -22,12 +20,6 @@ export function getPokeBackend() {
 }
 
 function initPokeBackend() {
-  const supabaseServerConfig = getSupabaseServerConfig();
-  if (supabaseServerConfig) {
-    console.log("Creating SupabasePokeBackend");
-    return new SupabasePokeBackend();
-  } else {
-    console.log("Creating SSEPokeBackend");
-    return new SSEPokeBackend();
-  }
+  console.log("Creating SSEPokeBackend");
+  return new SSEPokeBackend();
 }
