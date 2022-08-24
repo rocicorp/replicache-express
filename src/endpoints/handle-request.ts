@@ -7,6 +7,7 @@ import { handleCreateSpace, handleSpaceExist } from "./handle-space.js";
 export async function handleRequest<M extends MutatorDefs>(
   req: Express.Request,
   res: Express.Response,
+  next: Express.NextFunction,
   mutators: M
 ): Promise<void> {
   if (req.query === undefined) {
@@ -19,13 +20,13 @@ export async function handleRequest<M extends MutatorDefs>(
 
   switch (op) {
     case "push":
-      return await handlePush(req, res, mutators);
+      return await handlePush(req, res, next, mutators);
     case "pull":
-      return await handlePull(req, res);
+      return await handlePull(req, res, next);
     case "createSpace":
-      return await handleCreateSpace(req, res);
+      return await handleCreateSpace(req, res, next);
     case "spaceExists":
-      return await handleSpaceExist(req, res);
+      return await handleSpaceExist(req, res, next);
   }
 
   res.status(400).send({ error: "Invalid op" });
