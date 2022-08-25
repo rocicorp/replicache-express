@@ -76,11 +76,9 @@ export class ReplicacheExpressServer {
   }
 
   start(
-    options: ReplicacheServerOptions,
     callback: () => void
   ): ReplicacheExpressServer {
-    const app = ReplicacheExpressServer.app(options);
-    app.listen(options.port, options.host, callback);
+    this.app.listen(this.options.port, this.options.host, callback);
     return this;
   }
 
@@ -89,6 +87,6 @@ export class ReplicacheExpressServer {
     callback: () => void
   ): ReplicacheExpressServer {
     const app = new ReplicacheExpressServer(options);
-    return app.start(options, callback);
+    return app.start(callback);
   }
 }
