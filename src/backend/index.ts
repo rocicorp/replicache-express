@@ -5,16 +5,24 @@ import { transact } from "../backend/pg.js";
 import type { MutatorDefs } from "replicache";
 
 export async function spaceExists(spaceID: string) {
-  const cookie = await transact(async (executor) => {
-    return await getCookie(executor, spaceID);
-  });
-  return cookie !== undefined;
+  try {
+    const cookie = await transact(async (executor) => {
+      return await getCookie(executor, spaceID);
+    });
+    return cookie !== undefined;
+  } catch (e) {
+    throw new Error(`Failed calling spaceExists: ${spaceID}`);
+  }
 }
 
 export async function createSpace(spaceID: string) {
-  await transact(async (executor) => {
-    await createSpaceImpl(executor, spaceID);
-  });
+  try {
+    await transact(async (executor) => {
+      await createSpaceImpl(executor, spaceID);
+    });
+  } catch (e) {
+    throw new Error(`Failed to create space ${spaceID}`);
+  }
 }
 
 export async function handleRequest<M extends MutatorDefs>(

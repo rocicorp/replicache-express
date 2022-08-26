@@ -16,10 +16,10 @@ export async function handleCreateSpace(
   }
   try {
     await createSpace(spaceID);
+    res.status(200).send({ spaceID });
   } catch (e: any) {
     next(Error(`Failed to create space ${spaceID}`, e));
   }
-  res.status(200).send({ spaceID });
 }
 
 export async function handleSpaceExist(
