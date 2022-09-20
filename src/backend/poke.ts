@@ -1,18 +1,25 @@
-import type { PokeBackend } from "./poke.js";
+export function getPokeBackend() {
+  // The SSE impl has to keep process-wide state using the global object.
+  // Otherwise the state is lost during hot reload in dev.
+  const global = globalThis as unknown as {
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    _pokeBackend: PokeBackend;
+  };
+  if (!global._pokeBackend) {
+    global._pokeBackend = new PokeBackend();
+  }
+  return global._pokeBackend;
+}
 
 type Listener = () => void;
 type ListenerMap = Map<string, Set<Listener>>;
 
 // Implements the poke backend using server-sent events.
-export class SSEPokeBackend implements PokeBackend {
+export class PokeBackend {
   private _listeners: ListenerMap;
 
   constructor() {
     this._listeners = new Map();
-  }
-
-  async initSchema(): Promise<void> {
-    // No schema support necessary for SSE poke.
   }
 
   addListener(spaceID: string, listener: () => void) {

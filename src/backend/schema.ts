@@ -1,6 +1,5 @@
 import type { PGConfig } from "./pgconfig/pgconfig.js";
 import type { Executor } from "./pg.js";
-import { getPokeBackend } from "./poke/poke.js";
 
 export async function createDatabase(executor: Executor, dbConfig: PGConfig) {
   console.log("creating database");
@@ -42,7 +41,4 @@ export async function createSchemaVersion1(executor: Executor) {
   await executor(`create index on entry (spaceid)`);
   await executor(`create index on entry (deleted)`);
   await executor(`create index on entry (version)`);
-
-  const pokeBackend = getPokeBackend();
-  await pokeBackend.initSchema(executor);
 }
