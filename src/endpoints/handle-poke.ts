@@ -1,11 +1,9 @@
 import type Express from "express";
-import { getPokeBackend } from "../backend/poke/poke.js";
-import type { SSEPokeBackend } from "../backend/poke/sse.js";
+import { getPokeBackend } from "../backend/poke.js";
 
-export async function handlePokeSSE(
+export async function handlePoke(
   req: Express.Request,
-  res: Express.Response,
-  next: Express.NextFunction
+  res: Express.Response
 ): Promise<void> {
   if (req.query.spaceID === undefined) {
     res.status(400).send("Missing spaceID");
@@ -21,13 +19,7 @@ export async function handlePokeSSE(
   res.write(`id: ${Date.now()}\n`);
   res.write(`data: hello\n\n`);
 
-  const pokeBackend = getPokeBackend() as SSEPokeBackend;
-  if (!pokeBackend.addListener) {
-    throw new Error(
-      "Unsupported configuration. Expected to be configured using server-sent events for poke."
-    );
-    next();
-  }
+  const pokeBackend = getPokeBackend();
 
   const unlisten = pokeBackend.addListener(spaceID as string, () => {
     console.log(`Sending poke for space ${spaceID}`);

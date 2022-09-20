@@ -2,7 +2,7 @@ import type { MutatorDefs } from "replicache";
 import type Express from "express";
 import express from "express";
 import { handleRequest } from "./endpoints/handle-request.js";
-import { handlePokeSSE } from "./endpoints/handle-poke-sse.js";
+import { handlePoke } from "./endpoints/handle-poke.js";
 export interface ReplicacheServerOptions {
   mutators: MutatorDefs;
   port: number;
@@ -62,13 +62,12 @@ export class ReplicacheExpressServer {
       }
     );
     app.get(
-      "/api/replicache/poke-sse",
+      "/api/replicache/poke",
       async (
         req: Express.Request,
-        res: Express.Response,
-        next: Express.NextFunction
+        res: Express.Response
       ) => {
-        await handlePokeSSE(req, res, next);
+        await handlePoke(req, res);
       }
     );
 

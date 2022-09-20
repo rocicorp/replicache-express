@@ -7,7 +7,7 @@ import {
 } from "./data.js";
 import { ReplicacheTransaction } from "./replicache-transaction.js";
 import { z, ZodType } from "zod";
-import { getPokeBackend } from "./poke/poke.js";
+import { getPokeBackend } from "./poke.js";
 import type { MutatorDefs, ReadonlyJSONValue } from "replicache";
 
 const mutationSchema = z.object({
