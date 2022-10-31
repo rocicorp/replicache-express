@@ -9,7 +9,7 @@ import { ReplicacheTransaction } from "replicache-transaction";
 import { z, ZodType } from "zod";
 import { getPokeBackend } from "./poke.js";
 import type { MutatorDefs, ReadonlyJSONValue } from "replicache";
-import { PostgresStorage } from "../postgres-storage.js";
+import { PostgresStorage } from "./postgres-storage.js";
 
 const mutationSchema = z.object({
   id: z.number(),
