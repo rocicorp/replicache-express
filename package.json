@@ -19,11 +19,11 @@
     "npm": ">=7.0.0"
   },
   "peerDependencies": {
+    "express": ">=4.17.13",
     "pg": ">=8.6.0",
     "pg-mem": ">=2.5.0",
     "replicache": ">=11.2.1",
-    "zod": ">=3.17.3",
-    "express": ">=4.17.13"
+    "zod": ">=3.17.3"
   },
   "devDependencies": {
     "@types/chai": "^4.3.0",
@@ -50,6 +50,7 @@
     ".": "./lib/index.js"
   },
   "dependencies": {
-    "nanoid": "^4.0.0"
+    "nanoid": "^4.0.0",
+    "replicache-transaction": "^0.1.0"
   }
 }
