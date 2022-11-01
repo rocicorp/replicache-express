@@ -1,7 +1,7 @@
 import type { JSONValue } from "replicache";
 import type { Storage } from "replicache-transaction";
-import { putEntry, getEntry, getEntries, delEntry } from "./data";
-import type { Executor } from "./pg";
+import { putEntry, getEntry, getEntries, delEntry } from "./data.js";
+import type { Executor } from "./pg.js";
 
 // Implements the Storage interface required by replicache-transaction in terms
 // of our Postgres database.
