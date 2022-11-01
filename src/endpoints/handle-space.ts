@@ -1,5 +1,5 @@
 import { nanoid } from "nanoid";
-import { createSpace, spaceExists } from "../backend";
+import { createSpace, spaceExists } from "../backend/index.js";
 import type Express from "express";
 
 export async function handleCreateSpace(
