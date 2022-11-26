@@ -1,9 +1,7 @@
 {
-  "name": "replicache-express",
-  "version": "0.1.6",
-  "description": "Replicache Express Backend",
-  "homepage": "https://github.com/rocicorp/replicache-express",
-  "repository": "github:rocicorp/replicache-express",
+  "name": "replicache-express-mongo",
+  "version": "0.1",
+  "repository": "github:mazesoba-Dev/replicache-express-mongo",
   "license": "Apache-2.0",
   "scripts": {
     "format": "prettier --write 'src/*/*.{js,jsx,json,ts,tsx,html,css,md}' '*.{cjs,js,jsx,json,ts,tsx,html,css,md}'",
