@@ -2,7 +2,7 @@
 
 This is a generic Replicache backend built on Express.
 
-It's "generic" in the sense that it works with any Replicache mutators, and doesn't require app-specific code to sync. It is also agnostic to what frontend framework you use.
+It's "generic" in the sense that it works with any Replicache mutators (using the [Shared Mutator](https://doc.replicache.dev/share-mutators) pattern), and doesn't require app-specific code to sync. It is also agnostic to what frontend framework you use.
 
 ## Usage
 
