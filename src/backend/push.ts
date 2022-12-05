@@ -24,7 +24,10 @@ const pushRequestSchema = z.object({
 
 export type Error = "SpaceNotFound";
 
-export function parseIfDebug<T>(schema: ZodType<T>, val: ReadonlyJSONValue): T {
+export function parseIfDebug<T extends ReadonlyJSONValue>(
+  schema: ZodType<T>,
+  val: T
+): T {
   if (globalThis.process?.env?.NODE_ENV !== "production") {
     return schema.parse(val);
   }
