@@ -1,6 +1,6 @@
 {
   "name": "replicache-express",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Replicache Express Backend",
   "homepage": "https://github.com/rocicorp/replicache-express",
   "repository": "github:rocicorp/replicache-express",
@@ -51,6 +51,6 @@
   },
   "dependencies": {
     "nanoid": "^4.0.0",
-    "replicache-transaction": "^0.2.0"
+    "replicache-transaction": "^0.2.1"
   }
 }
