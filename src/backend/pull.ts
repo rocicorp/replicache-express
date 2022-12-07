@@ -1,39 +1,53 @@
 import { transact } from "./pg.js";
-import { getChangedEntries, getCookie, getLastMutationID } from "./data.js";
+import {
+  getChangedEntries,
+  getCookie,
+  getLastMutationIDsSince,
+} from "./data.js";
 import { z } from "zod";
-import type { PullResponse } from "replicache";
+import type { ClientID, PatchOperation, ReadonlyJSONValue } from "replicache";
 import type Express from "express";
 
 const pullRequest = z.object({
-  clientID: z.string(),
+  pullVersion: z.literal(1),
+  profileID: z.string(),
+  clientGroupID: z.string(),
   cookie: z.union([z.number(), z.null()]),
+  schemaVersion: z.string(),
 });
+
+// TODO: not exported from replicache
+type PullResponseOK = {
+  cookie: ReadonlyJSONValue;
+  lastMutationIDChanges: Record<ClientID, number>;
+  patch: PatchOperation[];
+};
 
 export async function pull(
   spaceID: string,
   requestBody: Express.Request
-): Promise<PullResponse> {
+): Promise<PullResponseOK> {
   console.log(`Processing pull`, JSON.stringify(requestBody, null, ""));
 
   const pull = pullRequest.parse(requestBody);
   const requestCookie = pull.cookie;
 
   console.log("spaceID", spaceID);
-  console.log("clientID", pull.clientID);
 
   const t0 = Date.now();
+  const sinceCookie = requestCookie ?? 0;
 
-  const [entries, lastMutationID, responseCookie] = await transact(
+  const [entries, lastMutationIDChanges, responseCookie] = await transact(
     async (executor) => {
       return Promise.all([
-        getChangedEntries(executor, spaceID, requestCookie ?? 0),
-        getLastMutationID(executor, pull.clientID),
+        getChangedEntries(executor, spaceID, sinceCookie),
+        getLastMutationIDsSince(executor, pull.clientGroupID, sinceCookie),
         getCookie(executor, spaceID),
       ]);
     }
   );
 
-  console.log("lastMutationID: ", lastMutationID);
+  console.log("lastMutationIDChanges: ", lastMutationIDChanges);
   console.log("responseCookie: ", responseCookie);
   console.log("Read all objects in", Date.now() - t0);
 
@@ -41,8 +55,8 @@ export async function pull(
     throw new Error(`Unknown space ${spaceID}`);
   }
 
-  const resp: PullResponse = {
-    lastMutationID: lastMutationID ?? 0,
+  const resp: PullResponseOK = {
+    lastMutationIDChanges,
     cookie: responseCookie,
     patch: [],
   };
