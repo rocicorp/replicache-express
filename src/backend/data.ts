@@ -89,9 +89,10 @@ export async function getCookie(
   executor: Executor,
   spaceID: string
 ): Promise<number | undefined> {
-  const { rows } = await executor(`select version from replicache_space where id = $1`, [
-    spaceID,
-  ]);
+  const { rows } = await executor(
+    `select version from replicache_space where id = $1`,
+    [spaceID]
+  );
   const value = rows[0]?.version;
   if (value === undefined) {
     return undefined;
@@ -125,17 +126,60 @@ export async function getLastMutationID(
   return z.number().parse(value);
 }
 
+export async function getLastMutationIDs(
+  executor: Executor,
+  clientIDs: string[]
+) {
+  return Object.fromEntries(
+    await Promise.all(
+      clientIDs.map(async (cid) => {
+        const lmid = await getLastMutationID(executor, cid);
+        return [cid, lmid ?? 0] as const;
+      })
+    )
+  );
+}
+
+export async function getLastMutationIDsSince(
+  executor: Executor,
+  clientGroupID: string,
+  sinceVersion: number
+) {
+  const { rows } = await executor(
+    `select id, lastmutationid from replicache_client where clientgroupid = $1 and version > $2`,
+    [clientGroupID, sinceVersion]
+  );
+  return Object.fromEntries(
+    rows.map((r) => [r.id as string, r.lastmutationid as number] as const)
+  );
+}
+
 export async function setLastMutationID(
   executor: Executor,
   clientID: string,
-  lastMutationID: number
+  clientGroupID: string,
+  lastMutationID: number,
+  version: number
 ): Promise<void> {
   await executor(
     `
-    insert into replicache_client (id, lastmutationid, lastmodified)
-    values ($1, $2, now())
-      on conflict (id) do update set lastmutationid = $2, lastmodified = now()
+    insert into replicache_client (id, clientgroupid, lastmutationid, version, lastmodified)
+    values ($1, $2, $3, $4, now())
+      on conflict (id) do update set lastmutationid = $3, version = $4, lastmodified = now()
     `,
-    [clientID, lastMutationID]
+    [clientID, clientGroupID, lastMutationID, version]
+  );
+}
+
+export async function setLastMutationIDs(
+  executor: Executor,
+  clientGroupID: string,
+  lmids: Record<string, number>,
+  version: number
+) {
+  return await Promise.all(
+    [...Object.entries(lmids)].map(([clientID, lmid]) =>
+      setLastMutationID(executor, clientID, clientGroupID, lmid, version)
+    )
   );
 }

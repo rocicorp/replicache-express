@@ -24,7 +24,9 @@ export async function createSchemaVersion1(executor: Executor) {
 
   await executor(`create table replicache_client (
           id text primary key not null,
+          clientgroupid text not null, 
           lastmutationid integer not null,
+          version integer not null,
           lastmodified timestamp(6) not null
           )`);
 

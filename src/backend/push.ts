@@ -1,9 +1,9 @@
 import { transact } from "./pg.js";
 import {
   getCookie,
-  getLastMutationID,
+  getLastMutationIDs,
   setCookie,
-  setLastMutationID,
+  setLastMutationIDs,
 } from "./data.js";
 import { ReplicacheTransaction } from "replicache-transaction";
 import { z, ZodType } from "zod";
@@ -12,13 +12,16 @@ import type { MutatorDefs, ReadonlyJSONValue } from "replicache";
 import { PostgresStorage } from "./postgres-storage.js";
 
 const mutationSchema = z.object({
+  clientID: z.string(),
   id: z.number(),
   name: z.string(),
   args: z.any(),
 });
 
 const pushRequestSchema = z.object({
-  clientID: z.string(),
+  pushVersion: z.literal(1),
+  profileID: z.string(),
+  clientGroupID: z.string(),
   mutations: z.array(mutationSchema),
 });
 
@@ -42,7 +45,10 @@ export async function push<M extends MutatorDefs>(
 ) {
   console.log("Processing push", JSON.stringify(requestBody, null, ""));
 
-  const push = parseIfDebug(pushRequestSchema, requestBody);
+  const push: z.infer<typeof pushRequestSchema> = parseIfDebug(
+    pushRequestSchema,
+    requestBody
+  );
 
   const t0 = Date.now();
   await transact(async (executor) => {
@@ -52,17 +58,25 @@ export async function push<M extends MutatorDefs>(
     }
 
     const nextVersion = prevVersion + 1;
-    let lastMutationID =
-      (await getLastMutationID(executor, push.clientID)) ?? 0;
+    const clientIDs = [...new Set(push.mutations.map((m) => m.clientID))];
+    const lastMutationIDs = await getLastMutationIDs(executor, clientIDs);
 
-    console.log("prevVersion: ", prevVersion);
-    console.log("lastMutationID:", lastMutationID);
+    console.log(
+      JSON.stringify({ prevVersion, nextVersion, clientIDs, lastMutationIDs })
+    );
 
     const storage = new PostgresStorage(spaceID, nextVersion, executor);
-    const tx = new ReplicacheTransaction(storage, push.clientID);
+    const tx = new ReplicacheTransaction(storage);
 
     for (let i = 0; i < push.mutations.length; i++) {
       const mutation = push.mutations[i];
+      const lastMutationID = lastMutationIDs[mutation.clientID];
+      if (lastMutationID === undefined) {
+        throw new Error(
+          "invalid state - lastMutationID not found for client: " +
+            mutation.clientID
+        );
+      }
       const expectedMutationID = lastMutationID + 1;
 
       if (mutation.id < expectedMutationID) {
@@ -79,6 +93,9 @@ export async function push<M extends MutatorDefs>(
       console.log("Processing mutation:", JSON.stringify(mutation, null, ""));
 
       const t1 = Date.now();
+      tx.clientID = mutation.clientID;
+      tx.mutationID = mutation.id;
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const mutator = (mutators as any)[mutation.name];
       if (!mutator) {
@@ -93,12 +110,17 @@ export async function push<M extends MutatorDefs>(
         );
       }
 
-      lastMutationID = expectedMutationID;
+      lastMutationIDs[mutation.clientID] = expectedMutationID;
       console.log("Processed mutation in", Date.now() - t1);
     }
 
     await Promise.all([
-      setLastMutationID(executor, push.clientID, lastMutationID),
+      setLastMutationIDs(
+        executor,
+        push.clientGroupID,
+        lastMutationIDs,
+        nextVersion
+      ),
       setCookie(executor, spaceID, nextVersion),
       tx.flush(),
     ]);
