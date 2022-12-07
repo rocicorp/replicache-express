@@ -7,6 +7,7 @@ import {
   getCookie,
   getEntries,
   getEntry,
+  getLastMutationID,
   putEntry,
   setCookie,
 } from "./data.js";
@@ -342,6 +343,45 @@ test("getCookie", async () => {
 
       const cookie = await getCookie(executor, "foo");
       expect(cookie).eq(c.exists ? 42 : undefined);
+    });
+  }
+});
+
+test("getLastMutationID", async () => {
+  type Case = {
+    name: string;
+    actual: number|undefined;
+    expected: number|undefined,
+  };
+  const cases: Case[] = [
+    {
+      name: "does not exist",
+      actual: undefined,
+      expected: undefined,
+    },
+    {
+      name: "zero",
+      actual: 0,
+      expected: 0,
+    },
+    {
+      name: "42",
+      actual: 42,
+      expected: 42,
+    },
+  ];
+  const clientID = 'c1';
+  const clientGroupID = 'cg1';
+  const version = 1;
+
+  for (const c of cases) {
+    await withExecutor(async (executor) => {
+      await executor(`delete from client where id = $1`, [clientID]);
+      if (c.actual !== undefined) {
+        await executor(`insert into client (id, clientgroupid, lastmutationid, version, lastmodified) values ($1, $2, $3, $4, now())`, [clientID, clientGroupID, c.actual, version]);
+      }
+      const lmid = await getLastMutationID(executor, clientID);
+      expect(lmid).eq(c.expected);
     });
   }
 });
