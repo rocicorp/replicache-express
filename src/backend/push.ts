@@ -21,7 +21,6 @@ const mutationSchema = z.object({
 const pushRequestSchema = z.object({
   pushVersion: z.literal(1),
   profileID: z.string(),
-  clientID: z.string(),
   clientGroupID: z.string(),
   mutations: z.array(mutationSchema),
 });
@@ -67,7 +66,7 @@ export async function push<M extends MutatorDefs>(
     );
 
     const storage = new PostgresStorage(spaceID, nextVersion, executor);
-    const tx = new ReplicacheTransaction(storage, push.clientID);
+    const tx = new ReplicacheTransaction(storage);
 
     for (let i = 0; i < push.mutations.length; i++) {
       const mutation = push.mutations[i];
@@ -94,6 +93,9 @@ export async function push<M extends MutatorDefs>(
       console.log("Processing mutation:", JSON.stringify(mutation, null, ""));
 
       const t1 = Date.now();
+      tx.clientID = mutation.clientID;
+      tx.mutationID = mutation.id;
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const mutator = (mutators as any)[mutation.name];
       if (!mutator) {

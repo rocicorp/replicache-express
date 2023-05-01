@@ -49,7 +49,9 @@ test("getEntry", async () => {
 
   await withExecutor(async (executor) => {
     for (const c of cases) {
-      await executor(`delete from replicache_entry where spaceid = 's1' and key = 'foo'`);
+      await executor(
+        `delete from replicache_entry where spaceid = 's1' and key = 'foo'`
+      );
       if (c.exists) {
         await executor(
           `insert into replicache_entry (spaceid, key, value, deleted, version, lastmodified) values ('s1', 'foo', $1, $2, 1, now())`,
@@ -183,7 +185,9 @@ test("putEntry", async () => {
 
   await withExecutor(async (executor) => {
     for (const c of cases) {
-      await executor(`delete from replicache_entry where spaceid = 's1' and key = 'foo'`);
+      await executor(
+        `delete from replicache_entry where spaceid = 's1' and key = 'foo'`
+      );
 
       let res: Promise<void>;
       if (c.duplicate) {
@@ -231,7 +235,9 @@ test("delEntry", async () => {
   ];
   for (const c of cases) {
     await withExecutor(async (executor) => {
-      await executor(`delete from replicache_entry where spaceid = 's1' and key = 'foo'`);
+      await executor(
+        `delete from replicache_entry where spaceid = 's1' and key = 'foo'`
+      );
       if (c.exists) {
         await executor(
           `insert into replicache_entry (spaceid, key, value, deleted, version, lastmodified) values ('s1', 'foo', '42', false, 1, now())`
@@ -298,7 +304,9 @@ test("createSpace", async () => {
         expect(c.exists).true;
       }
 
-      const res = await executor(`select * from replicache_space where id = 'foo'`);
+      const res = await executor(
+        `select * from replicache_space where id = 'foo'`
+      );
       expect(res.rowCount).eq(1);
       const [row] = res.rows;
       if (c.exists) {
@@ -350,8 +358,8 @@ test("getCookie", async () => {
 test("getLastMutationID", async () => {
   type Case = {
     name: string;
-    actual: number|undefined;
-    expected: number|undefined,
+    actual: number | undefined;
+    expected: number | undefined;
   };
   const cases: Case[] = [
     {
@@ -370,15 +378,18 @@ test("getLastMutationID", async () => {
       expected: 42,
     },
   ];
-  const clientID = 'c1';
-  const clientGroupID = 'cg1';
+  const clientID = "c1";
+  const clientGroupID = "cg1";
   const version = 1;
 
   for (const c of cases) {
     await withExecutor(async (executor) => {
-      await executor(`delete from client where id = $1`, [clientID]);
+      await executor(`delete from replicache_client where id = $1`, [clientID]);
       if (c.actual !== undefined) {
-        await executor(`insert into client (id, clientgroupid, lastmutationid, version, lastmodified) values ($1, $2, $3, $4, now())`, [clientID, clientGroupID, c.actual, version]);
+        await executor(
+          `insert into replicache_client (id, clientgroupid, lastmutationid, version, lastmodified) values ($1, $2, $3, $4, now())`,
+          [clientID, clientGroupID, c.actual, version]
+        );
       }
       const lmid = await getLastMutationID(executor, clientID);
       expect(lmid).eq(c.expected);
