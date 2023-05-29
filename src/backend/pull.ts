@@ -5,10 +5,14 @@ import {
   getLastMutationIDsSince,
 } from "./data.js";
 import { z } from "zod";
-import type { ClientID, PatchOperation, ReadonlyJSONValue } from "replicache";
+import type { ClientID, PatchOperation } from "replicache";
 import type Express from "express";
 
-const pullRequest = z.object({
+const pullRequestV0 = z.object({
+  pullVersion: z.literal(0),
+});
+
+const pullRequestV1 = z.object({
   pullVersion: z.literal(1),
   profileID: z.string(),
   clientGroupID: z.string(),
@@ -16,9 +20,15 @@ const pullRequest = z.object({
   schemaVersion: z.string(),
 });
 
-// TODO: not exported from replicache
-type PullResponseOK = {
-  cookie: ReadonlyJSONValue;
+const pullRequest = z.union([pullRequestV0, pullRequestV1]);
+
+// Causes the client to reload, getting a newer version of Replicache that can talk to this server.
+export type PullResponseV0 = {
+  error: "ClientStateNotFound";
+};
+
+export type PullResponseV1 = {
+  cookie: number;
   lastMutationIDChanges: Record<ClientID, number>;
   patch: PatchOperation[];
 };
@@ -26,11 +36,19 @@ type PullResponseOK = {
 export async function pull(
   spaceID: string,
   requestBody: Express.Request
-): Promise<PullResponseOK> {
+): Promise<PullResponseV0 | PullResponseV1> {
   console.log(`Processing pull`, JSON.stringify(requestBody, null, ""));
 
   const pull = pullRequest.parse(requestBody);
-  const requestCookie = pull.cookie;
+  const { pullVersion } = pull;
+  if (pullVersion === 0) {
+    const resp: PullResponseV0 = {
+      error: "ClientStateNotFound",
+    };
+    return resp;
+  }
+
+  const { cookie: requestCookie } = pull;
 
   console.log("spaceID", spaceID);
 
@@ -55,7 +73,7 @@ export async function pull(
     throw new Error(`Unknown space ${spaceID}`);
   }
 
-  const resp: PullResponseOK = {
+  const resp: PullResponseV1 = {
     lastMutationIDChanges,
     cookie: responseCookie,
     patch: [],

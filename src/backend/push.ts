@@ -18,12 +18,18 @@ const mutationSchema = z.object({
   args: z.any(),
 });
 
-const pushRequestSchema = z.object({
+const pushRequestV0Schema = z.object({
+  pushVersion: z.literal(0),
+});
+
+const pushRequestV1Schema = z.object({
   pushVersion: z.literal(1),
   profileID: z.string(),
   clientGroupID: z.string(),
   mutations: z.array(mutationSchema),
 });
+
+const pushRequestSchema = z.union([pushRequestV0Schema, pushRequestV1Schema]);
 
 export type Error = "SpaceNotFound";
 
@@ -49,6 +55,14 @@ export async function push<M extends MutatorDefs>(
     pushRequestSchema,
     requestBody
   );
+  const { pushVersion } = push;
+  if (pushVersion === 0) {
+    throw new Error(
+      "Unsupported push version: 0 - next pull should update client"
+    );
+  }
+
+  const { clientGroupID } = push;
 
   const t0 = Date.now();
   await transact(async (executor) => {
@@ -70,11 +84,11 @@ export async function push<M extends MutatorDefs>(
 
     for (let i = 0; i < push.mutations.length; i++) {
       const mutation = push.mutations[i];
-      const lastMutationID = lastMutationIDs[mutation.clientID];
+      const { clientID } = mutation;
+      const lastMutationID = lastMutationIDs[clientID];
       if (lastMutationID === undefined) {
         throw new Error(
-          "invalid state - lastMutationID not found for client: " +
-            mutation.clientID
+          "invalid state - lastMutationID not found for client: " + clientID
         );
       }
       const expectedMutationID = lastMutationID + 1;
@@ -93,7 +107,7 @@ export async function push<M extends MutatorDefs>(
       console.log("Processing mutation:", JSON.stringify(mutation, null, ""));
 
       const t1 = Date.now();
-      tx.clientID = mutation.clientID;
+      tx.clientID = clientID;
       tx.mutationID = mutation.id;
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -110,17 +124,12 @@ export async function push<M extends MutatorDefs>(
         );
       }
 
-      lastMutationIDs[mutation.clientID] = expectedMutationID;
+      lastMutationIDs[clientID] = expectedMutationID;
       console.log("Processed mutation in", Date.now() - t1);
     }
 
     await Promise.all([
-      setLastMutationIDs(
-        executor,
-        push.clientGroupID,
-        lastMutationIDs,
-        nextVersion
-      ),
+      setLastMutationIDs(executor, clientGroupID, lastMutationIDs, nextVersion),
       setCookie(executor, spaceID, nextVersion),
       tx.flush(),
     ]);
