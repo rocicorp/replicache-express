@@ -50,7 +50,7 @@ export async function withExecutor<R>(f: (executor: Executor) => R) {
   return withExecutorAndPool(f, p);
 }
 
-async function withExecutorAndPool<R>(
+export async function withExecutorAndPool<R>(
   f: (executor: Executor) => R,
   p: Pool
 ): Promise<R> {
@@ -90,7 +90,7 @@ export async function transact<R>(body: TransactionBodyFn<R>) {
   });
 }
 
-async function transactWithExecutor<R>(
+export async function transactWithExecutor<R>(
   executor: Executor,
   body: TransactionBodyFn<R>
 ) {
